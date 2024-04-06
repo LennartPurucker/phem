@@ -1,0 +1,183 @@
+[project]
+name = "phem"
+version = "0.0.1"
+authors = [
+    { name = "Lennart Purucker", email = "contact@lennart-purucker.com" },
+]
+description = "PHEM: A collection of Post Hoc Ensemble Methods for (Auto)ML"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "typing_extensions",
+    "more_itertools",
+    "assembled[openml]==0.0.4",
+    "ConfigSpace==0.6.1",
+    "scikit-learn",
+    "phem[all_methods]",
+]
+license = { file = "LICENSE" }
+
+[project.urls]
+source =  "https://github.com/xxx"
+documentation = "https://github.com/xxx/issues"
+
+# Ruff and other settings copied form AMLTK https://github.com/automl/amltk
+[project.optional-dependencies]
+dev = ["phem[doc, tooling, test, examples]"]
+tooling = ["commitizen", "pre-commit", "ruff", "mypy", "types-psutil", "types-pyyaml"]
+test = ["pytest<8", "pytest-coverage", "pytest-cases"]
+examples = ["openml"]
+doc = [
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocs-autorefs",
+  "mkdocs-gen-files",
+  "mkdocs-literate-nav",
+  "mkdocs-glightbox",
+  "mkdocstrings[python]",
+  "markdown-exec[ansi]",
+  "matplotlib",
+  "rich",
+  "mike",
+  "pillow",
+  "cairosvg",
+  "black",
+]
+
+# Different methodss
+all_methods = ["phem[qdo_es, cma_es]"]
+qdo_es = ["ribs==0.4.0"]
+cma_es = ["cma==3.2.2"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+output-format = "full"
+src = ["src", "tests", "examples"]
+
+[tool.ruff.lint]
+extend-safe-fixes = ["ALL"]
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+select = [
+  "A",
+  "ARG",
+  "B",
+  "BLE",
+  "COM",
+  "C4",
+  "D",
+  "E",
+  "ERA",
+  "F",
+  "FBT",
+  "I",
+  "INP",
+  "N",
+  "NPY",
+  "PD",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "PIE",
+  "PT",
+  "PTH",
+  "Q",
+  "PGH004",
+  "RET",
+  "RUF",
+  "C90",
+  "S",
+  "SIM",
+  "T10",
+  "T20",
+  "TID",
+  "TCH",
+  "UP",
+  "N",
+  "W",
+  "YTT",
+]
+
+ignore = [
+  "D104",
+  "D105",
+  "D203",
+  "D205",
+  "D401",
+  "N806",
+  "E731",
+  "A003",
+  "S101",
+  "W292",
+  "PLC1901",
+  "TCH003",
+  "B010",
+  "PD011",
+  "T201"
+]
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "docs",
+  "roc_auc.py",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["phem"]
+no-lines-before = ["future"]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
+extra-standard-library = ["typing_extensions"]
+force-wrap-aliases = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["src/phem", "tests"]
+
+show_error_codes = true
+
+warn_unused_configs = true
+
+follow_imports = "normal"
+ignore_missing_imports = false
+
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+disallow_incomplete_defs = true
+
+no_implicit_optional = true
+check_untyped_defs = true
+
+warn_return_any = true
