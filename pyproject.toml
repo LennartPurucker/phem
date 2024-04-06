@@ -23,8 +23,8 @@ dependencies = [
 license = { file = "LICENSE" }
 
 [project.urls]
-source =  "https://github.com/xxx"
-documentation = "https://github.com/xxx/issues"
+source =  "https://github.com/phem"
+documentation = "https://github.com/phem/issues"
 
 # Ruff and other settings copied form AMLTK https://github.com/automl/amltk
 [project.optional-dependencies]
