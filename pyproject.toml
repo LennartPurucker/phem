@@ -1,6 +1,6 @@
 [project]
 name = "phem"
-version = "0.0.1"
+version = "0.0.0.2"
 authors = [
     { name = "Lennart Purucker", email = "contact@lennart-purucker.com" },
 ]
@@ -18,13 +18,13 @@ dependencies = [
     "assembled[openml]==0.0.4",
     "ConfigSpace==0.6.1",
     "scikit-learn",
-    "phem[all_methods]",
+    "phem[all-methods]",
 ]
 license = { file = "LICENSE" }
 
 [project.urls]
-source =  "https://github.com/phem"
-documentation = "https://github.com/phem/issues"
+source =  "https://github.com/LennartPurucker/phem"
+documentation = "https://github.com/LennartPurucker/phem/issues"
 
 # Ruff and other settings copied form AMLTK https://github.com/automl/amltk
 [project.optional-dependencies]
@@ -50,9 +50,9 @@ doc = [
 ]
 
 # Different methodss
-all_methods = ["phem[qdo_es, cma_es]"]
-qdo_es = ["ribs==0.4.0"]
-cma_es = ["cma==3.2.2"]
+all-methods = ["phem[qdoes, cmaes]"]
+qdoes = ["ribs==0.4.0"]
+cmaes = ["cma==3.2.2"]
 
 [tool.ruff]
 target-version = "py310"

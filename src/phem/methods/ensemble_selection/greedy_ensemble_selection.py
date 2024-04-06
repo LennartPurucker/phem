@@ -39,7 +39,7 @@ class EnsembleSelection(AbstractWeightedEnsemble):
 
     def __init__(self, base_models: list[Callable], n_iterations: int, metric: AbstractMetric, n_jobs: int = -1,
                  random_state: int | np.random.RandomState | None = None,
-                 use_best: bool = False) -> None:
+                 use_best: bool = True) -> None:
         #base_models = base_models[:20]
 
         super().__init__(base_models, "predict_proba")
