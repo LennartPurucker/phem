@@ -45,7 +45,7 @@ print(f"ROC AUC Test Score: {roc_auc_score(y_test, y_pred[:, 1])}")
 
 For more example, please see https://github.com/LennartPurucker/phem/tree/master/examples.
 
-Based on [Assembled](https://github.com/ISG-Siegen/assembled) or [TabRepo](https://github.com/autogluon/tabrepo) , we have efficient means to simulate post hoc ensembling methods.
+Based on [Assembled](https://github.com/ISG-Siegen/assembled) or [TabRepo](https://github.com/autogluon/tabrepo), we have efficient means to simulate post hoc ensembling methods.
 
 ## Installation
 
