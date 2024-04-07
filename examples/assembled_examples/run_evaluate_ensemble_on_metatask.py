@@ -11,6 +11,8 @@ python run_evaluate_ensemble_on_metatask.py -1 "SingleBest" balanced_accuracy -1
 python run_evaluate_ensemble_on_metatask.py -1 "GES" balanced_accuracy -1
 python run_evaluate_ensemble_on_metatask.py -1 "QDO-ES" balanced_accuracy -1
 python run_evaluate_ensemble_on_metatask.py -1 "QO-ES" balanced_accuracy -1
+python run_evaluate_ensemble_on_metatask.py -1 "CMA-ES" balanced_accuracy -1
+python run_evaluate_ensemble_on_metatask.py -1 "CMA-ES-ExplicitGES" balanced_accuracy -1
 ```
 
 The results of the runs are stored under `examples/output/minimal_example_ens`

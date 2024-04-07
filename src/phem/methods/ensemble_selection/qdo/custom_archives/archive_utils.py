@@ -21,11 +21,10 @@ def remap_clean_up(self, reset_bounds=True):
 
     """
     if reset_bounds:
-        self._lower_bounds = np.array(
-            [bound[0] for bound in self._boundaries])
-        self._upper_bounds = np.array([
-            bound[dim] for bound, dim in zip(self._boundaries, self._dims, strict=False)
-        ])
+        self._lower_bounds = np.array([bound[0] for bound in self._boundaries])
+        self._upper_bounds = np.array(
+            [bound[dim] for bound, dim in zip(self._boundaries, self._dims, strict=False)]
+        )
 
     old_sols = self._solutions[self._occupied_indices_cols].copy()
     old_objs = self._objective_values[self._occupied_indices_cols].copy()

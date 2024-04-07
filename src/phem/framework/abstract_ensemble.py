@@ -42,9 +42,13 @@ class AbstractEnsemble:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, base_models, predict_method: str = "predict",
-                 predict_method_ensemble_predict: str | None = None, passthrough: bool = False):
-
+    def __init__(
+        self,
+        base_models,
+        predict_method: str = "predict",
+        predict_method_ensemble_predict: str | None = None,
+        passthrough: bool = False,
+    ):
         self.base_models = base_models
         self.predict_method = predict_method
         self.passthrough = passthrough
@@ -52,7 +56,6 @@ class AbstractEnsemble:
         if predict_method_ensemble_predict is None:
             self.predict_method_ensemble_predict = predict_method
         else:
-
             if predict_method_ensemble_predict not in ["predict", "predict_proba", "dynamic"]:
                 raise ValueError("The value for predict_method_ensemble_predict is not allowed.")
 
@@ -60,7 +63,10 @@ class AbstractEnsemble:
 
         # -- Obtain metadata in a standardized format
         self.base_models_metadata_exists = False
-        if any(hasattr(bm, "model_metadata") and (bm.model_metadata is not None) for bm in self.base_models):
+        if any(
+            hasattr(bm, "model_metadata") and (bm.model_metadata is not None)
+            for bm in self.base_models
+        ):
             # The metadat will be stored in the same order as the predictions base_models_predictions
             self.base_models_metadata_ = [bm.model_metadata for bm in self.base_models]
             self.base_models_metadata_exists = True
@@ -70,7 +76,9 @@ class AbstractEnsemble:
         if self.base_models_metadata_exists:
             return self.base_models_metadata_
 
-        raise ValueError("Base Models given during initialization did not have any metadata stored!")
+        raise ValueError(
+            "Base Models given during initialization did not have any metadata stored!"
+        )
 
     def fit(self, X, y):
         """Fitting the ensemble. To do so, we get the predictions of the base models and pass it to the ensemble's fit.
@@ -91,8 +99,12 @@ class AbstractEnsemble:
             raise ValueError(f"Unknown predict method: {self.predict_method}")
 
         # Test if ensemble technique supports passthrough
-        if self.passthrough and (not (hasattr(self, "supports_passthrough") and self.supports_passthrough is True)):
-            raise ValueError("Passthrough is enabled but the ensemble technique does not support passthrough!")
+        if self.passthrough and (
+            not (hasattr(self, "supports_passthrough") and self.supports_passthrough is True)
+        ):
+            raise ValueError(
+                "Passthrough is enabled but the ensemble technique does not support passthrough!"
+            )
 
         X, y = check_X_y(X, y)
         self.le_ = LabelEncoder().fit(y)
@@ -211,12 +223,16 @@ class AbstractEnsemble:
         self.classes_ = np.unique(y)
         y_ = self.le_.transform(y)
 
-        ensemble_output = self.ensemble_oracle_predict(self.base_models_predictions_for_ensemble_predict(X), y_)
+        ensemble_output = self.ensemble_oracle_predict(
+            self.base_models_predictions_for_ensemble_predict(X), y_
+        )
 
         return self.transform_ensemble_prediction(ensemble_output)
 
     @abstractmethod
-    def ensemble_fit(self, base_models_predictions: list[np.ndarray], labels: np.ndarray) -> AbstractEnsemble:
+    def ensemble_fit(
+        self, base_models_predictions: list[np.ndarray], labels: np.ndarray
+    ) -> AbstractEnsemble:
         """Fit an ensemble given predictions of base models and targets.
 
         base_models_predictions can either be the raw predictions or the confidences!
@@ -235,8 +251,9 @@ class AbstractEnsemble:
 
         """
 
-    def ensemble_passthrough_fit(self, X, base_models_predictions: list[np.ndarray],
-                                 labels: np.ndarray) -> AbstractEnsemble:
+    def ensemble_passthrough_fit(
+        self, X, base_models_predictions: list[np.ndarray], labels: np.ndarray
+    ) -> AbstractEnsemble:
         """Fit an ensemble given predictions of base models and targets.
 
         base_models_predictions can either be the raw predictions or the confidences!
@@ -256,7 +273,9 @@ class AbstractEnsemble:
         self
 
         """
-        raise NotImplementedError("ensemble_passthrough_fit is not implemented by every ensemble method!")
+        raise NotImplementedError(
+            "ensemble_passthrough_fit is not implemented by every ensemble method!"
+        )
 
     @abstractmethod
     def ensemble_predict(self, base_models_predictions: list[np.ndarray]) -> np.ndarray:
@@ -293,9 +312,13 @@ class AbstractEnsemble:
         y : ndarray, shape (n_samples, n_targets)
             Vector containing the class probabilities for each sample.
         """
-        raise NotImplementedError("ensemble_predict_proba is not implemented by every ensemble method!")
+        raise NotImplementedError(
+            "ensemble_predict_proba is not implemented by every ensemble method!"
+        )
 
-    def ensemble_passthrough_predict(self, X, base_models_predictions: list[np.ndarray]) -> np.ndarray:
+    def ensemble_passthrough_predict(
+        self, X, base_models_predictions: list[np.ndarray]
+    ) -> np.ndarray:
         """Create ensemble predictions from the base model predictions.
 
         base_models_predictions can either be the raw predictions or the confidences!
@@ -313,9 +336,13 @@ class AbstractEnsemble:
         y : ndarray, shape (n_samples,)
             Vector containing the class labels for each sample.
         """
-        raise NotImplementedError("ensemble_passthrough_predict is not implemented by every ensemble method!")
+        raise NotImplementedError(
+            "ensemble_passthrough_predict is not implemented by every ensemble method!"
+        )
 
-    def ensemble_passthrough_predict_proba(self, X, base_models_predictions: list[np.ndarray]) -> np.ndarray:
+    def ensemble_passthrough_predict_proba(
+        self, X, base_models_predictions: list[np.ndarray]
+    ) -> np.ndarray:
         """Create ensemble probability predictions from the base model predictions.
 
         base_models_predictions can either be the raw predictions or the confidences!
@@ -332,9 +359,13 @@ class AbstractEnsemble:
         y : ndarray, shape (n_samples, n_targets)
             Vector containing the class probabilities for each sample.
         """
-        raise NotImplementedError("ensemble_passthrough_predict_proba is not implemented by every ensemble method!")
+        raise NotImplementedError(
+            "ensemble_passthrough_predict_proba is not implemented by every ensemble method!"
+        )
 
-    def ensemble_oracle_predict(self, base_models_predictions: list[np.ndarray], labels: np.ndarray) -> np.ndarray:
+    def ensemble_oracle_predict(
+        self, base_models_predictions: list[np.ndarray], labels: np.ndarray
+    ) -> np.ndarray:
         """Predict with an oracle-like ensemble given predictions of base models and targets.
 
         base_models_predictions can either be the raw predictions or the confidences!
@@ -352,4 +383,6 @@ class AbstractEnsemble:
         y : ndarray, shape (n_samples,)
             Vector containing the class labels for each sample.
         """
-        raise NotImplementedError("ensemble_oracle_predict is not implemented by every ensemble method!")
+        raise NotImplementedError(
+            "ensemble_oracle_predict is not implemented by every ensemble method!"
+        )

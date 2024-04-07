@@ -11,11 +11,20 @@ from sklearn.utils.validation import _check_y, check_array
 # --- Class Stuff
 class DiversityMetric:
     """An abstract class for metrics to measure diversity."""
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, metric_func, metric_name, requires_weights=False, requires_y_ensemble_pred=False,
-                 requires_raw_predictions=False, more_diversity_if_higher=False, single_model_ensemble_default=1.):
+    def __init__(
+        self,
+        metric_func,
+        metric_name,
+        requires_weights=False,
+        requires_y_ensemble_pred=False,
+        requires_raw_predictions=False,
+        more_diversity_if_higher=False,
+        single_model_ensemble_default=1.0,
+    ):
         self.metric_func = metric_func
         self.name = metric_name
         self.requires_weights = requires_weights
@@ -26,9 +35,15 @@ class DiversityMetric:
         self.more_diversity_if_higher = more_diversity_if_higher
         self.single_model_ensemble_default = single_model_ensemble_default
 
-    def __call__(self, y_true: np.ndarray, Y_pred_base_models: list[np.ndarray],
-                 y_pred_ensemble: np.ndarray = None, weights: np.ndarray = None, checks=True,
-                 transform_confidences: bool = False):
+    def __call__(
+        self,
+        y_true: np.ndarray,
+        Y_pred_base_models: list[np.ndarray],
+        y_pred_ensemble: np.ndarray = None,
+        weights: np.ndarray = None,
+        checks=True,
+        transform_confidences: bool = False,
+    ):
         """Call which determines what to pass to the metric function.
 
         Moreover, we define the diversity to be 1 if the ensemble consists of only one model.
@@ -60,7 +75,9 @@ class DiversityMetric:
         if self.requires_weights:
             if weights is None:
                 raise ValueError("Metric requires weights but weights are None.")
-            if len(weights) != len(Y_pred_base_models) and sum(weights != 0) != len(Y_pred_base_models):
+            if len(weights) != len(Y_pred_base_models) and sum(weights != 0) != len(
+                Y_pred_base_models
+            ):
                 raise ValueError("Weight vector and base model count do not match!")
 
             kwargs[self.weights_signature_name] = weights
@@ -71,37 +88,47 @@ class DiversityMetric:
 
         # -- Pass data to metric
         if isinstance(self, OrdinalClassificationDiversityMetric):
-
             if checks:
                 # Verify Dimensions
                 if (y_pred_ensemble is not None) and y_pred_ensemble.ndim != 2:
-                    raise ValueError("OrdinalClassificationDiversityMetric requires prediction probabilities as input! "
-                                     "Ensemble Predictions (y_pred_ensemble) has more or less than 2 dimensions.")
+                    raise ValueError(
+                        "OrdinalClassificationDiversityMetric requires prediction probabilities as input! "
+                        "Ensemble Predictions (y_pred_ensemble) has more or less than 2 dimensions."
+                    )
 
                 if any(Y_pred_base_model.ndim != 2 for Y_pred_base_model in Y_pred_base_models):
-                    raise ValueError("OrdinalClassificationDiversityMetric requires prediction probabilities as input! "
-                                     "The predictions of at least one base model in Y_pred_base_models is not 2 dimensional",
-                                     )
-
-                if (y_pred_ensemble is not None) \
-                        and any(bm.shape[1] < y_pred_ensemble.shape[1] for bm in Y_pred_base_models):
                     raise ValueError(
-                        "y_true has more classes than some base model has predicted for.")
+                        "OrdinalClassificationDiversityMetric requires prediction probabilities as input! "
+                        "The predictions of at least one base model in Y_pred_base_models is not 2 dimensional",
+                    )
 
-                if (y_pred_ensemble is not None) \
-                        and any(bm.shape[1] != y_pred_ensemble.shape[1] for bm in Y_pred_base_models):
+                if (y_pred_ensemble is not None) and any(
+                    bm.shape[1] < y_pred_ensemble.shape[1] for bm in Y_pred_base_models
+                ):
                     raise ValueError(
-                        "The number of classes does not match between ensemble and some base model predictions.")
+                        "y_true has more classes than some base model has predicted for."
+                    )
+
+                if (y_pred_ensemble is not None) and any(
+                    bm.shape[1] != y_pred_ensemble.shape[1] for bm in Y_pred_base_models
+                ):
+                    raise ValueError(
+                        "The number of classes does not match between ensemble and some base model predictions."
+                    )
 
                 # Verify Array
-                Y_pred_base_models = [check_array(Y_pred_base_model) for Y_pred_base_model in Y_pred_base_models]
+                Y_pred_base_models = [
+                    check_array(Y_pred_base_model) for Y_pred_base_model in Y_pred_base_models
+                ]
 
             # Get Score
             diversity_score = self.metric_func(y_true, Y_pred_base_models, **kwargs)
 
         elif isinstance(self, NonOrdinalClassificationDiversityMetric):
             if checks:
-                Y_pred_base_models = [_check_y(Y_pred_base_model) for Y_pred_base_model in Y_pred_base_models]
+                Y_pred_base_models = [
+                    _check_y(Y_pred_base_model) for Y_pred_base_model in Y_pred_base_models
+                ]
 
             diversity_score = self.metric_func(y_true, Y_pred_base_models, **kwargs)
 
@@ -112,29 +139,57 @@ class DiversityMetric:
 
 
 class OrdinalClassificationDiversityMetric(DiversityMetric):
-
-    def __init__(self, metric_func, metric_name, requires_weights, requires_y_ensemble_pred, more_diversity_if_higher,
-                 single_model_ensemble_default):
-        super().__init__(metric_func, metric_name,
-                         requires_weights=requires_weights, requires_y_ensemble_pred=requires_y_ensemble_pred,
-                         requires_raw_predictions=False, more_diversity_if_higher=more_diversity_if_higher,
-                         single_model_ensemble_default=single_model_ensemble_default)
+    def __init__(
+        self,
+        metric_func,
+        metric_name,
+        requires_weights,
+        requires_y_ensemble_pred,
+        more_diversity_if_higher,
+        single_model_ensemble_default,
+    ):
+        super().__init__(
+            metric_func,
+            metric_name,
+            requires_weights=requires_weights,
+            requires_y_ensemble_pred=requires_y_ensemble_pred,
+            requires_raw_predictions=False,
+            more_diversity_if_higher=more_diversity_if_higher,
+            single_model_ensemble_default=single_model_ensemble_default,
+        )
 
 
 class NonOrdinalClassificationDiversityMetric(DiversityMetric):
-
-    def __init__(self, metric_func, metric_name, requires_weights, requires_y_ensemble_pred, more_diversity_if_higher,
-                 single_model_ensemble_default):
-        super().__init__(metric_func, metric_name,
-                         requires_weights=requires_weights, requires_y_ensemble_pred=requires_y_ensemble_pred,
-                         requires_raw_predictions=True, more_diversity_if_higher=more_diversity_if_higher,
-                         single_model_ensemble_default=single_model_ensemble_default)
+    def __init__(
+        self,
+        metric_func,
+        metric_name,
+        requires_weights,
+        requires_y_ensemble_pred,
+        more_diversity_if_higher,
+        single_model_ensemble_default,
+    ):
+        super().__init__(
+            metric_func,
+            metric_name,
+            requires_weights=requires_weights,
+            requires_y_ensemble_pred=requires_y_ensemble_pred,
+            requires_raw_predictions=True,
+            more_diversity_if_higher=more_diversity_if_higher,
+            single_model_ensemble_default=single_model_ensemble_default,
+        )
 
 
 # --- Metric Usability Stuff
-def make_diversity_metric(metric_type: str, metric_name: str, metric_func: Callable,
-                          requires_weights: bool = False, requires_y_ensemble_pred: bool = False,
-                          more_diversity_if_higher: bool = False, single_model_ensemble_default: float = 1):
+def make_diversity_metric(
+    metric_type: str,
+    metric_name: str,
+    metric_func: Callable,
+    requires_weights: bool = False,
+    requires_y_ensemble_pred: bool = False,
+    more_diversity_if_higher: bool = False,
+    single_model_ensemble_default: float = 1,
+):
     """Create an abstract usable diversity metric based on the input.
 
     Parameters
@@ -173,14 +228,24 @@ def make_diversity_metric(metric_type: str, metric_name: str, metric_func: Calla
 
     """
     if metric_type == "OrdinalClassification":
-        d_m = OrdinalClassificationDiversityMetric(metric_func, metric_name,
-                                                   requires_weights, requires_y_ensemble_pred, more_diversity_if_higher,
-                                                   single_model_ensemble_default)
+        d_m = OrdinalClassificationDiversityMetric(
+            metric_func,
+            metric_name,
+            requires_weights,
+            requires_y_ensemble_pred,
+            more_diversity_if_higher,
+            single_model_ensemble_default,
+        )
 
     elif metric_type == "NonOrdinalClassification":
-        d_m = NonOrdinalClassificationDiversityMetric(metric_func, metric_name,
-                                                      requires_weights, requires_y_ensemble_pred,
-                                                      more_diversity_if_higher, single_model_ensemble_default)
+        d_m = NonOrdinalClassificationDiversityMetric(
+            metric_func,
+            metric_name,
+            requires_weights,
+            requires_y_ensemble_pred,
+            more_diversity_if_higher,
+            single_model_ensemble_default,
+        )
     else:
         raise NotImplementedError()
 
@@ -188,7 +253,9 @@ def make_diversity_metric(metric_type: str, metric_name: str, metric_func: Calla
 
 
 # - Error Correlation
-def average_loss_correlation(y_true, Y_pred_base_models: list[np.ndarray], weights=None, aggregation_method=np.mean):
+def average_loss_correlation(
+    y_true, Y_pred_base_models: list[np.ndarray], weights=None, aggregation_method=np.mean
+):
     """Loss correlation implementation. Compute the correlation of the loss for each instance w.r.t. the true class
     between all pairs of base models.
 
@@ -206,10 +273,14 @@ def average_loss_correlation(y_true, Y_pred_base_models: list[np.ndarray], weigh
 
     if transformed_labels.shape[1] == 1:
         transformed_labels = np.append(
-            1 - transformed_labels, transformed_labels, axis=1,
+            1 - transformed_labels,
+            transformed_labels,
+            axis=1,
         )
 
-    loss_per_bm = [not_aggregated_loss(transformed_labels, bm_pred) for bm_pred in Y_pred_base_models]
+    loss_per_bm = [
+        not_aggregated_loss(transformed_labels, bm_pred) for bm_pred in Y_pred_base_models
+    ]
 
     # Get pairwise correlations
     # following https://chrisalbon.com/code/machine_learning/feature_selection/drop_highly_correlated_features/
@@ -229,7 +300,7 @@ def not_aggregated_loss(transformed_labels, y_pred, eps=1e-15):
     return 1 - (transformed_labels * y_pred).sum(axis=1)
 
 
-
 # --- Initialization
-LossCorrelation = make_diversity_metric("OrdinalClassification", "Average Loss Correlation",
-                                        average_loss_correlation)
+LossCorrelation = make_diversity_metric(
+    "OrdinalClassification", "Average Loss Correlation", average_loss_correlation
+)

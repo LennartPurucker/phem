@@ -1,5 +1,7 @@
 """Factories to call the post hoc ensembling methods (with a given configuration)."""
+
 from __future__ import annotations
+
 
 def _factory_SingleBest(metric=None, **kwargs):
     # "custom.SingleBest"
@@ -7,10 +9,10 @@ def _factory_SingleBest(metric=None, **kwargs):
 
     return {
         "technique": SingleBest,
-        "technique_args": {"metric": metric,
-                           "predict_method": "predict_proba"},
-        "pre_fit_base_models": True
+        "technique_args": {"metric": metric, "predict_method": "predict_proba"},
+        "pre_fit_base_models": True,
     }
+
 
 def _factory_es(rng_seed, metric, n_jobs, use_best):
     from numpy.random import RandomState
@@ -19,20 +21,41 @@ def _factory_es(rng_seed, metric, n_jobs, use_best):
 
     return {
         "technique": EnsembleSelection,
-        "technique_args": {"n_iterations": 50,
-                           "metric": metric,
-                           "n_jobs": n_jobs,
-                           "random_state": RandomState(rng_seed),
-                           "use_best": use_best},
+        "technique_args": {
+            "n_iterations": 50,
+            "metric": metric,
+            "n_jobs": n_jobs,
+            "random_state": RandomState(rng_seed),
+            "use_best": use_best,
+        },
         "pre_fit_base_models": True,
     }
 
-def _factory_qdo(rng_seed, metric, is_binary, labels, n_jobs, archive_type, behavior_space_choice, max_elites,
-                 emitter_initialization_method, starting_step_size, elite_selection_method, crossover_choice,
-                 crossover_probability, crossover_probability_dynamic, mutation_probability_after_crossover,
-                 mutation_probability_after_crossover_dynamic, negative_steps, weight_random_elite_selection,
-                 weight_random_step_selection, buffer_ratio_choice, dynamic_updates_consider_rejections,
-                 batch_size):
+
+def _factory_qdo(
+    rng_seed,
+    metric,
+    is_binary,
+    labels,
+    n_jobs,
+    archive_type,
+    behavior_space_choice,
+    max_elites,
+    emitter_initialization_method,
+    starting_step_size,
+    elite_selection_method,
+    crossover_choice,
+    crossover_probability,
+    crossover_probability_dynamic,
+    mutation_probability_after_crossover,
+    mutation_probability_after_crossover_dynamic,
+    negative_steps,
+    weight_random_elite_selection,
+    weight_random_step_selection,
+    buffer_ratio_choice,
+    dynamic_updates_consider_rejections,
+    batch_size,
+):
     from numpy.random import RandomState
 
     from phem.methods.ensemble_selection.qdo.qdo_es import QDOEnsembleSelection
@@ -41,12 +64,15 @@ def _factory_qdo(rng_seed, metric, is_binary, labels, n_jobs, archive_type, beha
     if behavior_space_choice is None:
         bs = None
     elif behavior_space_choice == "bs_configspace_similarity_and_loss_correlation":
-        from phem.methods.ensemble_selection.qdo.behavior_spaces import get_bs_configspace_similarity_and_loss_correlation
+        from phem.methods.ensemble_selection.qdo.behavior_spaces import (
+            get_bs_configspace_similarity_and_loss_correlation,
+        )
+
         bs = get_bs_configspace_similarity_and_loss_correlation()
     else:
         raise ValueError("Unknown choice for behavior_space!")
 
-    buffer_ratio = buffer_ratio_choice if buffer_ratio_choice is not None else 1.
+    buffer_ratio = buffer_ratio_choice if buffer_ratio_choice is not None else 1.0
 
     # - Emitter Vars
     emitter_vars = {
@@ -65,14 +91,18 @@ def _factory_qdo(rng_seed, metric, is_binary, labels, n_jobs, archive_type, beha
             raise ValueError("crossover_probability must be a float!")
 
         if isinstance(mutation_probability_after_crossover, float):
-            emitter_vars["mutation_probability_after_crossover"] = mutation_probability_after_crossover
+            emitter_vars["mutation_probability_after_crossover"] = (
+                mutation_probability_after_crossover
+            )
         else:
             raise ValueError("mutation_probability_after_crossover must be a float!")
 
         if crossover_probability_dynamic is not None:
             emitter_vars["crossover_probability_dynamic"] = crossover_probability_dynamic
         if mutation_probability_after_crossover_dynamic is not None:
-            emitter_vars["mutation_probability_after_crossover_dynamic"] = mutation_probability_after_crossover_dynamic
+            emitter_vars["mutation_probability_after_crossover_dynamic"] = (
+                mutation_probability_after_crossover_dynamic
+            )
 
     if negative_steps is not None:
         emitter_vars["negative_steps"] = negative_steps
@@ -100,6 +130,41 @@ def _factory_qdo(rng_seed, metric, is_binary, labels, n_jobs, archive_type, beha
             "emitter_vars": emitter_vars,
             "random_state": RandomState(rng_seed),
             "n_jobs": n_jobs,
+        },
+        "pre_fit_base_models": True,
+    }
+
+
+def _factory_cmaes(
+    rng_seed,
+    metric,
+    n_jobs,
+    batch_size,
+    normalize_weights,
+    single_best_fallback,
+    weight_vector_ensemble,
+    trim_weights,
+    sigma0,
+    start_weight_vector_method,
+):
+    from numpy.random import RandomState
+
+    from phem.methods.ensemble_weighting import CMAES
+
+    return {
+        "technique": CMAES,
+        "technique_args": {
+            "n_iterations": 50,
+            "score_metric": metric,
+            "batch_size": batch_size,
+            "random_state": RandomState(rng_seed),
+            "normalize_weights": normalize_weights,
+            "single_best_fallback": single_best_fallback,
+            "weight_vector_ensemble": weight_vector_ensemble,
+            "start_weight_vector_method": start_weight_vector_method,
+            "trim_weights": trim_weights,
+            "n_jobs": n_jobs,
+            "sigma0": sigma0,
         },
         "pre_fit_base_models": True,
     }

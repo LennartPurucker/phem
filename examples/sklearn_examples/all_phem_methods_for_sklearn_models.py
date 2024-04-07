@@ -19,6 +19,7 @@ from phem.methods.ensemble_selection.qdo import (
     QDOEnsembleSelection,
     get_bs_ensemble_size_and_loss_correlation,
 )
+from phem.methods.ensemble_weighting import CMAES
 
 # -- Obtain Base Models from Sklearn
 classifiers = [
@@ -102,6 +103,26 @@ for _name, _clf in [
             score_metric=metric_for_post_hoc_ensembling,
             behavior_space=get_bs_ensemble_size_and_loss_correlation(),
             random_state=1,
+        ),
+    ),
+    (
+        "CMA-ES",
+        CMAES(
+            base_models=base_models,
+            score_metric=metric_for_post_hoc_ensembling,
+            n_iterations=50,
+            random_state=1,
+        ),
+    ),
+    (
+        "CMA-ES-ExplicitGES",
+        CMAES(
+            base_models=base_models,
+            score_metric=metric_for_post_hoc_ensembling,
+            n_iterations=50,
+            random_state=1,
+            normalize_weights="softmax",
+            trim_weights="ges-like",
         ),
     ),
 ]:

@@ -13,10 +13,17 @@ if TYPE_CHECKING:
 
 
 # -- Metric Utils
-def make_metric(metric_func: Callable, metric_name: str, maximize: bool,
-                classification: bool, always_transform_conf_to_pred: bool,
-                optimum_value: int, pos_label: int = 1, requires_confidences: bool = False,
-                only_positive_class: bool = False):
+def make_metric(
+    metric_func: Callable,
+    metric_name: str,
+    maximize: bool,
+    classification: bool,
+    always_transform_conf_to_pred: bool,
+    optimum_value: int,
+    pos_label: int = 1,
+    requires_confidences: bool = False,
+    only_positive_class: bool = False,
+):
     """Make a metric that has additional information.
 
     Parameters
@@ -44,9 +51,17 @@ def make_metric(metric_func: Callable, metric_name: str, maximize: bool,
         values are passed. This is only needed for binary classification. Ignored if always_transform_conf_to_pred is
         True.
     """
-    return AbstractMetric(metric_func, metric_name, maximize, classification,
-                          always_transform_conf_to_pred, optimum_value, pos_label,
-                          requires_confidences, only_positive_class)
+    return AbstractMetric(
+        metric_func,
+        metric_name,
+        maximize,
+        classification,
+        always_transform_conf_to_pred,
+        optimum_value,
+        pos_label,
+        requires_confidences,
+        only_positive_class,
+    )
 
 
 class AbstractMetric:
@@ -60,8 +75,18 @@ class AbstractMetric:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, metric, name, maximize, classification, transform_conf_to_pred, optimum_value, pos_label,
-                 requires_confidences, only_positive_class):
+    def __init__(
+        self,
+        metric,
+        name,
+        maximize,
+        classification,
+        transform_conf_to_pred,
+        optimum_value,
+        pos_label,
+        requires_confidences,
+        only_positive_class,
+    ):
         self.metric = metric
         self.maximize = maximize
         self.name = name
@@ -73,8 +98,13 @@ class AbstractMetric:
         self.requires_confidences = requires_confidences
         self.only_positive_class = only_positive_class
 
-    def __call__(self, y_true: pd.DataFrame | np.ndarray, y_pred: pd.DataFrame | np.ndarray,
-                 to_loss: bool = False, checks=True):
+    def __call__(
+        self,
+        y_true: pd.DataFrame | np.ndarray,
+        y_pred: pd.DataFrame | np.ndarray,
+        to_loss: bool = False,
+        checks=True,
+    ):
         """Parameters
         ----------
         y_true: array-like
@@ -98,7 +128,9 @@ class AbstractMetric:
                 y_pred = _check_y(y_pred)
 
                 if self.requires_confidences:
-                    raise ValueError("Confidences are needed for this metric but predictions are passed.")
+                    raise ValueError(
+                        "Confidences are needed for this metric but predictions are passed."
+                    )
         elif y_pred.ndim == 2:
             if checks:
                 y_pred = check_array(y_pred)
@@ -127,7 +159,6 @@ class AbstractMetric:
         return abs(self.optimum_value - metric_value)
 
     def inverse_loss(self, loss_value):
-
         if (self.optimum_value == 0) and (not self.maximize):
             return loss_value
 

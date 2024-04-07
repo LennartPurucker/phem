@@ -37,13 +37,20 @@ class SingleBest(AbstractEnsemble):
         self.metric = metric
         self.predict_proba_input = "predict_proba"
 
-    def ensemble_fit(self, base_models_predictions: list[np.ndarray], labels: np.ndarray) -> AbstractEnsemble:
+    def ensemble_fit(
+        self, base_models_predictions: list[np.ndarray], labels: np.ndarray
+    ) -> AbstractEnsemble:
         """Find the single best algorithm and store it for later."""
         if not isinstance(self.metric, AbstractMetric):
-            raise ValueError("The provided metric must be an instance of a AbstractMetric, "
-                             f"nevertheless it is {self.metric}({type(self.metric)})")
+            raise ValueError(
+                "The provided metric must be an instance of a AbstractMetric, "
+                f"nevertheless it is {self.metric}({type(self.metric)})"
+            )
 
-        performances = [self.metric(labels, bm_prediction, to_loss=True) for bm_prediction in base_models_predictions]
+        performances = [
+            self.metric(labels, bm_prediction, to_loss=True)
+            for bm_prediction in base_models_predictions
+        ]
         self.best_model_index_ = np.argmin(performances)
         self.validation_loss_ = np.min(performances)
 

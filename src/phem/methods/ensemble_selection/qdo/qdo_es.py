@@ -112,7 +112,8 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         self.batch_size = batch_size
         self.n_evaluations = self.n_iterations * self.n_base_models
         self.internal_n_iterations, self.n_rest_evaluations = self._compute_n_iterations(
-            self.n_evaluations, self.batch_size
+            self.n_evaluations,
+            self.batch_size,
         )
 
         # -- Basic Init
@@ -183,7 +184,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
             self._use_mp = True
 
     def ensemble_fit(
-        self, predictions: list[np.ndarray], labels: np.ndarray
+        self,
+        predictions: list[np.ndarray],
+        labels: np.ndarray,
     ) -> AbstractWeightedEnsemble:
         # -- Input Validation
         self.n_iterations = int(self.n_iterations)
@@ -193,23 +196,23 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         if not isinstance(self.score_metric, AbstractMetric):
             raise ValueError(
                 "The provided metric must be an instance of a AbstractMetric, "
-                f"nevertheless it is {self.score_metric}({type(self.score_metric)})"
+                f"nevertheless it is {self.score_metric}({type(self.score_metric)})",
             )
 
         if not isinstance(self.behavior_space, BehaviorSpace):
             raise ValueError(
                 "The provided behavior space must be an instance of a BehaviorSpace, "
-                f"nevertheless it is {self.behavior_space}({type(self.behavior_space)})"
+                f"nevertheless it is {self.behavior_space}({type(self.behavior_space)})",
             )
 
         if self.emitter_method not in self.allowed_emitter_methods:
             raise ValueError(
-                f"The emitter methods is not in {self.allowed_emitter_methods}. Got: {self.emitter_method}"
+                f"The emitter methods is not in {self.allowed_emitter_methods}. Got: {self.emitter_method}",
             )
 
         if self.emitter_initialization_method not in self.allowed_emitter_initialization_methods:
             raise ValueError(
-                f"The emitter initialization method is not in {self.allowed_emitter_initialization_methods}. Got: {self.emitter_initialization_method}"
+                f"The emitter initialization method is not in {self.allowed_emitter_initialization_methods}. Got: {self.emitter_initialization_method}",
             )
 
         if (not isinstance(self.buffer_ratio, float)) or (
@@ -222,7 +225,7 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
             )
 
         if (self.archive_type not in ["quality"]) and int(
-            round(self.max_elites ** (1.0 / self.behavior_space.n_dims))
+            round(self.max_elites ** (1.0 / self.behavior_space.n_dims)),
         ) ** self.behavior_space.n_dims != self.max_elites:
             raise ValueError(
                 "Number of max elites can not be used to split the dimensions evenly!",
@@ -280,7 +283,8 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         # Set number of iterations to reflect this and to guarantee that we do not exceed the allowed
         # number of evaluations
         self.internal_n_iterations, self.n_rest_evaluations = self._compute_n_iterations(
-            self.n_evaluations - self._n_init_evals, self.batch_size
+            self.n_evaluations - self._n_init_evals,
+            self.batch_size,
         )
 
     @staticmethod
@@ -310,7 +314,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         if self.emitter_initialization_method != "AllL1":
             # -- Get Single Best to guarantee performance improvement based on validation data
             objs, _ = self._evaluate_batch_of_solutions(
-                np.array([w for w, _ in _start_weight_vectors]), predictions, y_true
+                np.array([w for w, _ in _start_weight_vectors]),
+                predictions,
+                y_true,
             )
             sb_weight_vector = _start_weight_vectors[np.argmax(objs)]
             self._update_n_iterations(self.n_base_models)
@@ -320,7 +326,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
                 self.init_iteration_results = (np.max(objs), sb_weight_vector[0])
 
                 l2_combinations = self.random_state.choice(
-                    self.n_base_models, (self.n_base_models // 2, 2), replace=False
+                    self.n_base_models,
+                    (self.n_base_models // 2, 2),
+                    replace=False,
                 )
                 # Fill combinations
                 _start_weight_vectors = []
@@ -367,7 +375,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         # Code for analysis
         if self.show_analysis:
             o, b = self._evaluate_batch_of_solutions(
-                np.array([w for w, _ in _start_weight_vectors]), predictions, y_true
+                np.array([w for w, _ in _start_weight_vectors]),
+                predictions,
+                y_true,
             )
             self._sb_stats = [o[np.argmax(o)], b[np.argmax(o), :]]
 
@@ -378,7 +388,8 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
                     isinstance(self.emitter_vars[req_time_atr], Callable)
                 ):
                     self.emitter_vars[req_time_atr] = partial(
-                        self.emitter_vars[req_time_atr], max_time=self.internal_n_iterations
+                        self.emitter_vars[req_time_atr],
+                        max_time=self.internal_n_iterations,
                     )
 
             emitters = [
@@ -487,7 +498,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
             merged_weights = np.array([elite.sol for elite in elites]).sum(axis=0) / len(elites)
         # Get performance for merged weights
         merge_obj = self._evaluate_batch_of_solutions(
-            np.array([merged_weights]), predictions, labels
+            np.array([merged_weights]),
+            predictions,
+            labels,
         )[0][0]
 
         # max/Argmax because we made this a maximization problem to work with ribs
@@ -575,13 +588,17 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
             sol_i_list = list(range(len(solutions)))
 
             with ProcessPoolExecutor(
-                self._n_jobs, initializer=_pool_init, initargs=func_args
+                self._n_jobs,
+                initializer=_pool_init,
+                initargs=func_args,
             ) as ex:
                 results = ex.map(_init_wrapper_evaluate_single_solution, sol_i_list)
             res = np.array(list(results))
         else:
             res = np.apply_along_axis(
-                partial(evaluate_single_solution, *func_args), axis=1, arr=solutions
+                partial(evaluate_single_solution, *func_args),
+                axis=1,
+                arr=solutions,
             )
 
         if self.show_analysis:
@@ -703,7 +720,9 @@ def evaluate_single_solution(
     """
     # Get Score
     y_pred_ensemble = AbstractWeightedEnsemble._ensemble_predict(
-        predictions, weight_vector, normalize_predict_proba_
+        predictions,
+        weight_vector,
+        normalize_predict_proba_,
     )
 
     # Negative loss because we want to maximize

@@ -54,7 +54,7 @@ From source (latest version):
 pip install git+https://github.com/LennartPurucker/phem
 ```
 
-From pip (latest release):
+From pip (latest release, do not use this right now as pip might be outdated!):
 ```bash
 pip install phem
 ```

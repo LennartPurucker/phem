@@ -114,7 +114,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
             raise ValueError("starting_step_size must be larger than 1!")
         if elite_selection_method not in self.allowed_elite_selection_methods:
             raise ValueError(
-                f"Unknown elite_selection_method! Allowed are: {self.allowed_elite_selection_methods}. Got: {elite_selection_method}."
+                f"Unknown elite_selection_method! Allowed are: {self.allowed_elite_selection_methods}. Got: {elite_selection_method}.",
             )
 
         self._rng = np.random.default_rng(seed)
@@ -171,7 +171,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
 
         if crossover_probability_dynamic and (not isinstance(crossover_probability, float)):
             raise ValueError(
-                "crossover_probability_dynamic can only be used if crossover_probability is a float!"
+                "crossover_probability_dynamic can only be used if crossover_probability is a float!",
             )
         self._crossover_probability_dynamic = crossover_probability_dynamic
 
@@ -180,7 +180,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
         ):
             raise ValueError(
                 "_mutation_probability_after_crossover_dynamic can only be "
-                + "used if mutation_probability_after_crossover is a float!"
+                + "used if mutation_probability_after_crossover is a float!",
             )
         self._mutation_probability_after_crossover_dynamic = (
             mutation_probability_after_crossover_dynamic
@@ -230,7 +230,8 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
         if self._weight_random_step_selection:
             np.seterr(invalid="ignore")  # since we abuse dividing by zero to obtain nan values.
             self._base_model_sample_weights = np.full(
-                n_base_models, 1 / n_base_models
+                n_base_models,
+                1 / n_base_models,
             )  # step direction weights
 
         # -- Analysis Stats
@@ -394,11 +395,11 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
             self._n_ensemble_sizes[np.sum(sol > 0)] += 1
 
         self._mutation_probabilities_after_crossover_over_time.append(
-            self.mutation_probability_after_crossover
+            self.mutation_probability_after_crossover,
         )
         self._crossover_probabilities_over_time.append(self.crossover_probability)
         self._random_elite_selection_probabilities_over_time.append(
-            self._random_elite_selection_probability
+            self._random_elite_selection_probability,
         )
         self._internal_iterations_counter += 1
 
@@ -450,7 +451,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
         # -- Update Origin summary where needed
         tmp_origin_performance[SolutionOrigins.crossover] = list(
             np.array(tmp_origin_performance[SolutionOrigins.co_mutation])
-            + np.array(tmp_origin_performance[SolutionOrigins.co_no_mutation])
+            + np.array(tmp_origin_performance[SolutionOrigins.co_no_mutation]),
         )
         self._origin_performance_over_time.append(tmp_origin_performance)
         self._rejections_over_time.append(
@@ -459,7 +460,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
                 self._tmp_crossover_mutation_reject,
                 self._tmp_no_crossover_mutation_reject,
                 self._tmp_elite_origin_reject_counter,
-            )
+            ),
         )
 
         # -- Only keep origin performance of last N iterations
@@ -469,7 +470,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
         for o_p in self._origin_performance_over_time[N:]:
             for k in self._origin_performance:
                 self._origin_performance[k] = list(
-                    np.array(self._origin_performance[k]) + np.array(o_p[k])
+                    np.array(self._origin_performance[k]) + np.array(o_p[k]),
                 )
 
         # Accumulate rejections
@@ -616,11 +617,12 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
 
             # Compute the contribution to the performance for each base model; scale it by how much it contributed
             avg_perf_per_bm = np.divide(
-                (solutions * objective_values.reshape(-1, 1)).sum(axis=0), np.sum(solutions, axis=0)
+                (solutions * objective_values.reshape(-1, 1)).sum(axis=0),
+                np.sum(solutions, axis=0),
             )
             # Read as: The base model's contribution was X times worse than the baseline on average
             rel_dist_to_baseline = abs(avg_perf_per_bm - baseline_performance) / abs(
-                baseline_performance
+                baseline_performance,
             )
 
             # FIXME: fix this to be something smarter
@@ -629,7 +631,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
             update_per_weight = 1 * np.nan_to_num(rel_dist_to_baseline, nan=1)
             # Update and re-normalize
             self._base_model_sample_weights = softmax(
-                self._base_model_sample_weights - update_per_weight
+                self._base_model_sample_weights - update_per_weight,
             )
 
     # -- Wrapper Function for Selection, Crossover, and mutation
@@ -718,7 +720,8 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
                 # Get proba_weights based on performances
                 performances = np.array([e.obj for e in self.archive])
                 sel_idx = self._rng.choice(
-                    len(elites), p=np.exp(performances) / np.exp(performances).sum()
+                    len(elites),
+                    p=np.exp(performances) / np.exp(performances).sum(),
                 )
                 elite_float_w, _, _, _, sample_size = elites[sel_idx]
         else:
@@ -762,7 +765,7 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
                 for ix in sel_idx:
                     # Mutate and add to list
                     *sampled_elite, reject_flag = self._mutate_elite(
-                        *self._original_start_weight_vectors[ix]
+                        *self._original_start_weight_vectors[ix],
                     )
                     if not reject_flag:
                         elites.append(sampled_elite)
@@ -773,7 +776,9 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
         # -- Default case
         else:
             sel_idx = self._rng.choice(
-                len(self._original_start_weight_vectors), n_elites, replace=False
+                len(self._original_start_weight_vectors),
+                n_elites,
+                replace=False,
             )
             elites = [self._original_start_weight_vectors[ix] for ix in sel_idx]
 
@@ -1013,9 +1018,9 @@ class DiscreteWeightSpaceEmitter(EmitterBase):
                         [
                             self._base_model_sample_weights[idx]
                             for idx, _ in self._remaining_steps_for_hash[dwv_hash]
-                        ]
+                        ],
                     ),
-                )
+                ),
             )
         else:
             selected_step = tuple(self._rng.choice(self._remaining_steps_for_hash[dwv_hash]))

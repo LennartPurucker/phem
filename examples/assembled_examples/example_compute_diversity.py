@@ -2,6 +2,7 @@
 
 This is an example on how to compute diversity given a metatask.
 """
+
 from __future__ import annotations
 
 import os
@@ -36,12 +37,23 @@ def _run(mt: MetaTask):
 
     # -- Get all algorithms (custom code for metatasks produced by auto-sklearn).
     # We have access to the config from auto-sklearn via mt.predictor_descriptions.
-    fold_algos = {mt.predictor_descriptions[bm]["config"]["classifier:__choice__"] for bm in fold_bms}
+    fold_algos = {
+        mt.predictor_descriptions[bm]["config"]["classifier:__choice__"] for bm in fold_bms
+    }
     print("Algorithms:", list(fold_algos))
 
     # -- Get all data associated to this fold that is stored in the metatask object
-    _, X_train, X_test, y_train, y_test, val_base_predictions, test_base_predictions, \
-        val_base_confidences, test_base_confidences = next(mt.yield_evaluation_data([fold]))
+    (
+        _,
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        val_base_predictions,
+        test_base_predictions,
+        val_base_confidences,
+        test_base_confidences,
+    ) = next(mt.yield_evaluation_data([fold]))
 
     # The validation predictions were computed on a holdout set, hence we first need to select this holdout set.
     val_indices = mt.meta_data["validation_indices"][fold]
@@ -52,10 +64,15 @@ def _run(mt: MetaTask):
     div_metric = LossCorrelation  # specific diversity metric (requires specific input etc.)
 
     # transform to common format in post hoc ensembling / for the metrics
-    val_list_of_preds = [val_base_confidences[mt.get_validation_confidences_columns([bm])].values for bm in fold_bms]
+    val_list_of_preds = [
+        val_base_confidences[mt.get_validation_confidences_columns([bm])].values for bm in fold_bms
+    ]
     test_list_of_preds = [test_base_confidences[mt.get_conf_cols([bm])].values for bm in fold_bms]
 
-    print("Validation Diversity of all base models:", div_metric(val_y_train.values, val_list_of_preds))
+    print(
+        "Validation Diversity of all base models:",
+        div_metric(val_y_train.values, val_list_of_preds),
+    )
     print("Test Diversity of all base models:", div_metric(y_test, test_list_of_preds))
 
 

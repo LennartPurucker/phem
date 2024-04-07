@@ -1,4 +1,5 @@
 """Contains the SlidingBoundariesArchive."""
+
 from __future__ import annotations
 
 from collections import deque
@@ -8,7 +9,7 @@ import numpy as np
 from ribs.archives._archive_base import ArchiveBase, require_init
 from sortedcontainers import SortedList
 
-from phem.methods.ensemble_selection.qdo.custom_archives.utils import remap_clean_up
+from phem.methods.ensemble_selection.qdo.custom_archives.archive_utils import remap_clean_up
 
 _EPSILON = 1e-6
 
@@ -55,8 +56,7 @@ class SolutionBuffer:
             for i, bc in enumerate(bc_deleted):
                 self._bc_lists[i].remove(bc)
 
-        self._queue.append(
-            (solution, objective_value, behavior_values, metadata))
+        self._queue.append((solution, objective_value, behavior_values, metadata))
 
         # Add bc to sorted lists.
         for i, bc in enumerate(behavior_values):
@@ -128,19 +128,23 @@ class SlidingBoundariesArchive(ArchiveBase):
             remapping.
     """
 
-    def __init__(self,
-                 dims,
-                 ranges,
-                 seed=None,
-                 dtype=np.float64,
-                 remap_frequency=100,
-                 initial_remap=100,
-                 buffer_capacity=1000,
-                 show_analysis=False):
+    def __init__(
+        self,
+        dims,
+        ranges,
+        seed=None,
+        dtype=np.float64,
+        remap_frequency=100,
+        initial_remap=100,
+        buffer_capacity=1000,
+        show_analysis=False,
+    ):
         self._dims = np.array(dims)
         if len(self._dims) != len(ranges):
-            raise ValueError(f"dims (length {len(self._dims)}) and ranges "
-                             f"(length {len(ranges)}) must be the same length")
+            raise ValueError(
+                f"dims (length {len(self._dims)}) and ranges "
+                f"(length {len(ranges)}) must be the same length"
+            )
 
         ArchiveBase.__init__(
             self,
@@ -162,15 +166,15 @@ class SlidingBoundariesArchive(ArchiveBase):
 
         # Allocate an extra entry in each row so we can put the upper bound at
         # the end.
-        self._boundaries = np.full((self._behavior_dim, np.max(self._dims) + 1),
-                                   np.nan,
-                                   dtype=self.dtype)
+        self._boundaries = np.full(
+            (self._behavior_dim, np.max(self._dims) + 1), np.nan, dtype=self.dtype
+        )
 
         # Initialize the boundaries.
         for i, (dim, lower_bound, upper_bound) in enumerate(
-                zip(self._dims, self._lower_bounds, self._upper_bounds, strict=False)):
-            self._boundaries[i, :dim + 1] = np.linspace(lower_bound,
-                                                        upper_bound, dim + 1)
+            zip(self._dims, self._lower_bounds, self._upper_bounds, strict=False)
+        ):
+            self._boundaries[i, : dim + 1] = np.linspace(lower_bound, upper_bound, dim + 1)
         self._boundaries_over_time = [self._boundaries.copy()]
 
         # Create buffer.
@@ -234,24 +238,21 @@ class SlidingBoundariesArchive(ArchiveBase):
         bounds of all the bins in dimension ``i``, use ``boundaries[i][:-1]``,
         and to access all the upper bounds, use ``boundaries[i][1:]``.
         """
-        return [
-            bound[:dim + 1] for bound, dim in zip(self._boundaries, self._dims, strict=False)
-        ]
+        return [bound[: dim + 1] for bound, dim in zip(self._boundaries, self._dims, strict=False)]
 
     @staticmethod
     @nb.jit(nopython=True)
-    def _get_index_numba(behavior_values, upper_bounds, lower_bounds,
-                         boundaries, dims):
+    def _get_index_numba(behavior_values, upper_bounds, lower_bounds, boundaries, dims):
         """Numba helper for get_index().
 
         See get_index() for usage.
         """
         behavior_values = np.minimum(
-            np.maximum(behavior_values + _EPSILON, lower_bounds),
-            upper_bounds - _EPSILON)
+            np.maximum(behavior_values + _EPSILON, lower_bounds), upper_bounds - _EPSILON
+        )
         index = []
         for i, behavior_value in enumerate(behavior_values):
-            idx = np.searchsorted(boundaries[i][:dims[i]], behavior_value)
+            idx = np.searchsorted(boundaries[i][: dims[i]], behavior_value)
             index.append(max(0, idx - 1))
         return index
 
@@ -280,14 +281,13 @@ class SlidingBoundariesArchive(ArchiveBase):
             tuple of int: The grid indices.
         """
         index = SlidingBoundariesArchive._get_index_numba(
-            behavior_values, self.upper_bounds, self.lower_bounds,
-            self._boundaries, self._dims)
+            behavior_values, self.upper_bounds, self.lower_bounds, self._boundaries, self._dims
+        )
         return tuple(index)
 
     @staticmethod
     @nb.jit(nopython=True)
-    def _remap_numba_helper(sorted_bc, buffer_size, boundaries, behavior_dim,
-                            dims):
+    def _remap_numba_helper(sorted_bc, buffer_size, boundaries, behavior_dim, dims):
         """Numba helper for _remap().
 
         See _remap() for usage.
@@ -315,11 +315,9 @@ class SlidingBoundariesArchive(ArchiveBase):
         sorted_bc = self._buffer.sorted_behavior_values
 
         # Calculate new boundaries.
-        SlidingBoundariesArchive._remap_numba_helper(sorted_bc,
-                                                     self._buffer.size,
-                                                     self._boundaries,
-                                                     self._behavior_dim,
-                                                     self.dims)
+        SlidingBoundariesArchive._remap_numba_helper(
+            sorted_bc, self._buffer.size, self._boundaries, self._behavior_dim, self.dims
+        )
 
         return remap_clean_up(self)
 
@@ -358,6 +356,7 @@ class SlidingBoundariesArchive(ArchiveBase):
                 self._boundaries_over_time.append(self._boundaries.copy())
                 self._elites_over_time.append([(e.obj, *e.beh) for e in self])
         else:
-            status, value = ArchiveBase.add(self, solution, objective_value,
-                                            behavior_values, metadata)
+            status, value = ArchiveBase.add(
+                self, solution, objective_value, behavior_values, metadata
+            )
         return status, value

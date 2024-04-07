@@ -45,7 +45,9 @@ class QualityArchive(ArchiveBase):
             return tuple(np.unravel_index(np.argmin(self._occupied), self._occupied.shape))
 
         # Find bin with the smallest value and return (local competition will resolve the if it is inserted or not)
-        return tuple(np.unravel_index(np.argmin(self._objective_values), self._objective_values.shape))
+        return tuple(
+            np.unravel_index(np.argmin(self._objective_values), self._objective_values.shape)
+        )
 
     def add(self, solution, objective_value, behavior_values, metadata=None):
         status, value = ArchiveBase.add(self, solution, objective_value, behavior_values, metadata)

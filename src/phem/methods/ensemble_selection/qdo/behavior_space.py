@@ -15,6 +15,7 @@ Example:
     ])
 
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -23,8 +24,14 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import numpy as np
 
-ALLOWED_ARGUMENTS = ["y_true", "y_pred_ensemble", "Y_pred_base_models", "weights",
-                     "input_metadata", "y_pred"]
+ALLOWED_ARGUMENTS = [
+    "y_true",
+    "y_pred_ensemble",
+    "Y_pred_base_models",
+    "weights",
+    "input_metadata",
+    "y_pred",
+]
 
 
 # --- Class
@@ -49,18 +56,29 @@ class BehaviorFunction:
         A name of the behavior function.
     """
 
-    def __init__(self, function: Callable[[], float], required_arguments: list[str],
-                 range_tuple: tuple[float, float], required_prediction_format: str, name: str | None = None):
+    def __init__(
+        self,
+        function: Callable[[], float],
+        required_arguments: list[str],
+        range_tuple: tuple[float, float],
+        required_prediction_format: str,
+        name: str | None = None,
+    ):
         self.function = function
 
         if any(v not in ALLOWED_ARGUMENTS for v in required_arguments):
-            raise ValueError(f"Not allowed argument name used. Allowed are: {ALLOWED_ARGUMENTS}. Got: {required_arguments}")
+            raise ValueError(
+                f"Not allowed argument name used. Allowed are: {ALLOWED_ARGUMENTS}. Got: {required_arguments}"
+            )
         self.required_arguments = required_arguments
         self.range_tuple = range_tuple
 
         if required_prediction_format not in ["raw", "proba", "none"]:
-            raise ValueError("Unknown prediction format. Expected: {}. Got: .{}".format(["raw", "proba", "none"],
-                                                                                        required_prediction_format))
+            raise ValueError(
+                "Unknown prediction format. Expected: {}. Got: .{}".format(
+                    ["raw", "proba", "none"], required_prediction_format
+                )
+            )
         self.required_prediction_format = required_prediction_format
         self.name = "Placeholder" if name is None else name
         self.requires_base_model_metadata = "input_metadata" in required_arguments
@@ -88,10 +106,14 @@ class BehaviorSpace:
     def requires_base_model_metadata(self):
         return any(bf.requires_base_model_metadata for bf in self.behavior_functions)
 
-    def __call__(self, weights: np.ndarray, y_true: np.ndarray,
-                 raw_preds: tuple[np.ndarray, list[np.ndarray]] | None = (None, None),
-                 proba_preds: tuple[np.ndarray, list[np.ndarray]] | None = (None, None),
-                 input_metadata: Any | None = None) -> list[float]:
+    def __call__(
+        self,
+        weights: np.ndarray,
+        y_true: np.ndarray,
+        raw_preds: tuple[np.ndarray, list[np.ndarray]] | None = (None, None),
+        proba_preds: tuple[np.ndarray, list[np.ndarray]] | None = (None, None),
+        input_metadata: Any | None = None,
+    ) -> list[float]:
         """Get an instance of the behavior space.
 
         Parameters
@@ -122,13 +144,19 @@ class BehaviorSpace:
             # Can ignore the "none" case as in that case the arguments are not used.
             requires_raw = bf.required_prediction_format == "raw"
 
-            potential_args = {"y_true": y_true,
-                                  "y_pred": raw_y_pred_ensemble if requires_raw else proba_y_pred_ensemble,
-                                  "y_pred_ensemble": raw_y_pred_ensemble if requires_raw else proba_y_pred_ensemble,
-                                  "Y_pred_base_models": raw_Y_pred_base_models if requires_raw else proba_Y_pred_base_models,
-                                  "weights": weights,
-                                  "input_metadata": input_metadata}
+            potential_args = {
+                "y_true": y_true,
+                "y_pred": raw_y_pred_ensemble if requires_raw else proba_y_pred_ensemble,
+                "y_pred_ensemble": raw_y_pred_ensemble if requires_raw else proba_y_pred_ensemble,
+                "Y_pred_base_models": raw_Y_pred_base_models
+                if requires_raw
+                else proba_Y_pred_base_models,
+                "weights": weights,
+                "input_metadata": input_metadata,
+            }
 
-            b_space_instance.append(bf.function(**{para: potential_args[para] for para in bf.required_arguments}))
+            b_space_instance.append(
+                bf.function(**{para: potential_args[para] for para in bf.required_arguments})
+            )
 
         return b_space_instance

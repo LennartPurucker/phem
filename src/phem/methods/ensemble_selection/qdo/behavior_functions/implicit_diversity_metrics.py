@@ -2,6 +2,7 @@
 
 Any metric that tries to implicit measure the diversity of an ensemble.
 """
+
 from __future__ import annotations
 
 from itertools import combinations
@@ -33,7 +34,6 @@ def config_space_gower_similarity(input_metadata: tuple[dict[str, int | float], 
         distance_scores = []  # lower is better
 
         for i_k in identical_keys:
-
             if isinstance(bm_md_1[i_k], str):
                 # -- Assume it is a categorical hyperparameter/choice
                 if bm_md_1[i_k] == bm_md_2[i_k]:
@@ -54,5 +54,10 @@ def config_space_gower_similarity(input_metadata: tuple[dict[str, int | float], 
     return mean(scores_over_pairs)
 
 
-ConfigSpaceGowerSimilarity = BehaviorFunction(config_space_gower_similarity, ["input_metadata"], (0, 1), "none",
-                                              name="Gower Similarity in Config Space (Lower is more Diverse)")
+ConfigSpaceGowerSimilarity = BehaviorFunction(
+    config_space_gower_similarity,
+    ["input_metadata"],
+    (0, 1),
+    "none",
+    name="Gower Similarity in Config Space (Lower is more Diverse)",
+)

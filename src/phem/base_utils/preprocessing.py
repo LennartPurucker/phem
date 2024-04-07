@@ -12,12 +12,24 @@ def get_default_preprocessing():
     # here for compatibility.
     return ColumnTransformer(
         transformers=[
-            ("num", SimpleImputer(strategy="constant", fill_value=-1),
-             make_column_selector(dtype_exclude="category")),
-            ("cat", Pipeline(steps=[("encoder", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1)),
-                                    ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-                                    ]),
-             make_column_selector(dtype_include="category")),
+            (
+                "num",
+                SimpleImputer(strategy="constant", fill_value=-1),
+                make_column_selector(dtype_exclude="category"),
+            ),
+            (
+                "cat",
+                Pipeline(
+                    steps=[
+                        (
+                            "encoder",
+                            OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1),
+                        ),
+                        ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
+                    ]
+                ),
+                make_column_selector(dtype_include="category"),
+            ),
         ],
         sparse_threshold=0,
     )

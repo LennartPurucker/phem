@@ -8,9 +8,10 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
+from sklearn.utils import check_random_state
+
 from phem.base_utils.metrics import AbstractMetric
 from phem.framework.abstract_weighted_ensemble import AbstractWeightedEnsemble
-from sklearn.utils import check_random_state
 
 
 class EnsembleSelection(AbstractWeightedEnsemble):
@@ -37,10 +38,16 @@ class EnsembleSelection(AbstractWeightedEnsemble):
         After finishing all iterations, use the best found ensemble instead of the last found ensemble.
     """
 
-    def __init__(self, base_models: list[Callable], n_iterations: int, metric: AbstractMetric, n_jobs: int = -1,
-                 random_state: int | np.random.RandomState | None = None,
-                 use_best: bool = True) -> None:
-        #base_models = base_models[:20]
+    def __init__(
+        self,
+        base_models: list[Callable],
+        n_iterations: int,
+        metric: AbstractMetric,
+        n_jobs: int = -1,
+        random_state: int | np.random.RandomState | None = None,
+        use_best: bool = True,
+    ) -> None:
+        # base_models = base_models[:20]
 
         super().__init__(base_models, "predict_proba")
         self.ensemble_size = n_iterations
@@ -65,13 +72,17 @@ class EnsembleSelection(AbstractWeightedEnsemble):
         # https://scikit-learn.org/stable/common_pitfalls.html#controlling-randomness
         self.random_state = random_state
 
-    def ensemble_fit(self, predictions: list[np.ndarray], labels: np.ndarray) -> AbstractWeightedEnsemble:
+    def ensemble_fit(
+        self, predictions: list[np.ndarray], labels: np.ndarray
+    ) -> AbstractWeightedEnsemble:
         self.ensemble_size = int(self.ensemble_size)
         if self.ensemble_size < 1:
             raise ValueError("Ensemble size cannot be less than one!")
         if not isinstance(self.metric, AbstractMetric):
-            raise ValueError("The provided metric must be an instance of a AbstractMetric, "
-                             f"nevertheless it is {self.metric}({type(self.metric)})")
+            raise ValueError(
+                "The provided metric must be an instance of a AbstractMetric, "
+                f"nevertheless it is {self.metric}({type(self.metric)})"
+            )
 
         self._fit(predictions, labels)
         self.apply_use_best()
@@ -104,7 +115,7 @@ class EnsembleSelection(AbstractWeightedEnsemble):
         )
 
         for _i in range(ensemble_size):
-            #print(i)
+            # print(i)
             s = len(ensemble)
             if s > 0:
                 np.add(
@@ -115,7 +126,9 @@ class EnsembleSelection(AbstractWeightedEnsemble):
 
             # -- Process Iteration Solutions
             if self._use_mp:
-                losses = self._compute_losses_mp(weighted_ensemble_prediction, labels, predictions, s)
+                losses = self._compute_losses_mp(
+                    weighted_ensemble_prediction, labels, predictions, s
+                )
             else:
                 losses = np.zeros(
                     (len(predictions)),
@@ -135,12 +148,12 @@ class EnsembleSelection(AbstractWeightedEnsemble):
                     )
                     np.multiply(
                         fant_ensemble_prediction,
-                        (1. / float(s + 1)),
+                        (1.0 / float(s + 1)),
                         out=fant_ensemble_prediction,
                     )
 
                     losses[j] = self.metric(labels, fant_ensemble_prediction, to_loss=True)
-            #print("LOSSES ",losses)
+            # print("LOSSES ",losses)
 
             # -- Eval Iteration results
             all_best = np.argwhere(losses == np.nanmin(losses)).flatten()
@@ -149,13 +162,16 @@ class EnsembleSelection(AbstractWeightedEnsemble):
             ensemble_loss = losses[best]
 
             ensemble.append(predictions[best])
-            #print("ENSEMBLE ", ensemble)
+            # print("ENSEMBLE ", ensemble)
             trajectory.append(ensemble_loss)
             order.append(best)
-            #print("order ", order)
+            # print("order ", order)
 
             # Build Correct Validation loss list
-            if not self.val_loss_over_iterations_ or self.val_loss_over_iterations_[-1] > ensemble_loss:
+            if (
+                not self.val_loss_over_iterations_
+                or self.val_loss_over_iterations_[-1] > ensemble_loss
+            ):
                 self.val_loss_over_iterations_.append(ensemble_loss)
             else:
                 self.val_loss_over_iterations_.append(self.val_loss_over_iterations_[-1])
@@ -170,7 +186,7 @@ class EnsembleSelection(AbstractWeightedEnsemble):
 
         self.indices_ = order
         self.trajectory_ = trajectory
-        #print("TRAJECTORY ", trajectory)
+        # print("TRAJECTORY ", trajectory)
 
     def _compute_losses_mp(self, weighted_ensemble_prediction, labels, predictions, s):
         # -- Process Iteration Solutions
@@ -187,8 +203,8 @@ class EnsembleSelection(AbstractWeightedEnsemble):
             # Basically from autogluon the code
             min_score = np.min(self.trajectory_)
             idx_best = self.trajectory_.index(min_score)
-            self.indices_ = self.indices_[:idx_best + 1]
-            self.trajectory_ = self.trajectory_[:idx_best + 1]
+            self.indices_ = self.indices_[: idx_best + 1]
+            self.trajectory_ = self.trajectory_[: idx_best + 1]
             self.ensemble_size = idx_best + 1
             self.validation_loss_ = self.trajectory_[idx_best]
         else:
@@ -221,12 +237,19 @@ def _pool_init(_weighted_ensemble_prediction, _labels, _sample_size, _score_metr
 
 
 def _init_wrapper_evaluate_single_solution(pred_index):
-    return evaluate_single_solution(p_weighted_ensemble_prediction, p_labels, p_sample_size, p_score_metric,
-                                    p_predictions[pred_index])
+    return evaluate_single_solution(
+        p_weighted_ensemble_prediction,
+        p_labels,
+        p_sample_size,
+        p_score_metric,
+        p_predictions[pred_index],
+    )
 
 
 def evaluate_single_solution(weighted_ensemble_prediction, labels, sample_size, score_metric, pred):
     fant_ensemble_prediction = np.add(weighted_ensemble_prediction, pred)
-    np.multiply(fant_ensemble_prediction, (1. / float(sample_size + 1)), out=fant_ensemble_prediction)
+    np.multiply(
+        fant_ensemble_prediction, (1.0 / float(sample_size + 1)), out=fant_ensemble_prediction
+    )
 
     return score_metric(labels, fant_ensemble_prediction, to_loss=True)
