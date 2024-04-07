@@ -95,8 +95,8 @@ For background on post hoc ensembling for AutoML, I advise to read the introduct
 
 ```text
 [1] Caruana, Rich, et al. "Ensemble selection from libraries of models." Proceedings of the twenty-first international conference on Machine learning. 2004.
-[2] Purucker, Lennart Oswald, et al. "Q (D) O-ES: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in AutoML." International Conference on Automated Machine Learning. PMLR, 2023.
-[3] Purucker, Lennart Oswald, and Joeran Beel. "CMA-ES for Post Hoc Ensembling in AutoML: A Great Success and Salvageable Failure." International Conference on Automated Machine Learning. PMLR, 2023.
+[2] Purucker, Lennart, et al. "Q (D) O-ES: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in AutoML." International Conference on Automated Machine Learning. PMLR, 2023.
+[3] Purucker, Lennart, and Joeran Beel. "CMA-ES for Post Hoc Ensembling in AutoML: A Great Success and Salvageable Failure." International Conference on Automated Machine Learning. PMLR, 2023.
 [4] Purucker, Lennart, and Joeran Beel. "Assembled-OpenML: Creating efficient benchmarks for ensembles in AutoML with OpenML." arXiv preprint arXiv:2307.00285 (2023).
 [5] Salinas, David, and Nick Erickson. "TabRepo: A Large Scale Repository of Tabular Model Evaluations and its AutoML Applications." arXiv preprint arXiv:2311.02971 (2023).
 ```
