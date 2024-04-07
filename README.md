@@ -73,11 +73,30 @@ The algorithms and implementations behind the interfaces can also be (somewhat e
 This repository only focuses on classification so far. But most methods can be trivially extended to regression (if I had the time).
 
 
+# Literature and Related Work
+For background on post hoc ensembling for AutoML, I advise to read the introduction and background of: https://arxiv.org/abs/2307.08364 ([2])
+
+
+## Supported Post Hoc Ensembling Methods:
+| Name                                                | PHEM Name           | Reference | Original Code                                                                                            | PHEM Code            |
+|-----------------------------------------------------|---------------------|-----------|----------------------------------------------------------------------------------------------------------|----------------------|
+| SinlgeBest (no post hoc ensembling)                | `SingleBest`        | N/A       | [:blue_book:](https://github.com/ISG-Siegen/assembled/blob/main/ensemble_techniques/custom/baselines.py) | [:orange_book:](https://github.com/LennartPurucker/phem/blob/master/src/phem/methods/baselines/single_best.py) |
+| Greedy Ensemble Selection (GES) | `EnsembleSelection` | [1]       | N/A                                                                                                      | [:orange_book:](https://github.com/LennartPurucker/phem/blob/master/src/phem/methods/ensemble_selection/greedy_ensemble_selection.py) |
+| Q(D)O-ES | `QDOEnsembleSelection` | [2]       | [:blue_book:](https://github.com/LennartPurucker/PopulationBasedQDO-PostHocEnsembleSelectionAutoML)              | [:orange_book:](https://github.com/LennartPurucker/phem/blob/master/src/phem/methods/ensemble_selection/qdo/qdo_es.py) |
+| CMA-ES for Post Hoc Ensembling | `CMAES` | [3]       | [:blue_book:](https://github.com/LennartPurucker/CMA-ES-PostHocEnsemblingAutoML) | [:orange_book:](https://github.com/LennartPurucker/phem/blob/master/src/phem/methods/ensemble_weighting/cmaes.py) |
+
+## Related Repositories
+| Name                                                | Code | Reference |
+|-----------------------------------------------------|------|-----------|
+| Assembled | [:bookmark_tabs:](https://github.com/ISG-Siegen/assembled) | [4] |
+| TabRepo | [:bookmark_tabs:](https://github.com/autogluon/tabrepo) | [5] |
 
 ## References
-- Assembled: https://github.com/ISG-Siegen/assembled
-- Background on Post Hoc Ensembling in AutoML: https://arxiv.org/abs/2307.08364
-- Post Hoc Ensembling Methods
-    - Greedy Ensemble Selection (GES): Caruana, Rich, et al. "Ensemble selection from libraries of models." Proceedings of the twenty-first international conference on Machine learning. 2004.
-    - Q(D)O-ES: Quality (Diversity) Optimisation Ensemble Selection https://github.com/LennartPurucker/PopulationBasedQDO-PostHocEnsembleSelectionAutoML
-    - (TODO ADD) CMA-ES for Post Hoc Ensembling: https://github.com/LennartPurucker/CMA-ES-PostHocEnsemblingAutoML
+
+```text
+[1] Caruana, Rich, et al. "Ensemble selection from libraries of models." Proceedings of the twenty-first international conference on Machine learning. 2004.
+[2] Purucker, Lennart Oswald, et al. "Q (D) O-ES: Population-based Quality (Diversity) Optimisation for Post Hoc Ensemble Selection in AutoML." International Conference on Automated Machine Learning. PMLR, 2023.
+[3] Purucker, Lennart Oswald, and Joeran Beel. "CMA-ES for Post Hoc Ensembling in AutoML: A Great Success and Salvageable Failure." International Conference on Automated Machine Learning. PMLR, 2023.
+[4] Purucker, Lennart, and Joeran Beel. "Assembled-OpenML: Creating efficient benchmarks for ensembles in AutoML with OpenML." arXiv preprint arXiv:2307.00285 (2023).
+[5] Salinas, David, and Nick Erickson. "TabRepo: A Large Scale Repository of Tabular Model Evaluations and its AutoML Applications." arXiv preprint arXiv:2311.02971 (2023).
+```
