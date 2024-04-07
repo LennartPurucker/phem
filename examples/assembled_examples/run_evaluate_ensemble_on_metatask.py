@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     # -- Build Paths
     file_path = Path(os.path.dirname(os.path.abspath(__file__)))
-    tmp_input_dir = file_path.parent / "data"
+    tmp_input_dir = file_path / "example_metatask"
     print(f"Path to Metatask: {tmp_input_dir}")
 
     out_path = file_path.parent / "output" / "run_evaluate_ensemble_on_metatask" / f"task_{openml_task_id}"

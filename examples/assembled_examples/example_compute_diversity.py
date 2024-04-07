@@ -15,7 +15,7 @@ from phem.base_utils.diversity_metrics import LossCorrelation
 
 def _read_mt(openml_task_id) -> MetaTask:
     file_path = Path(os.path.dirname(os.path.abspath(__file__)))
-    tmp_input_dir = file_path.parent / "data"
+    tmp_input_dir = file_path / "example_metatask"
     print(f"Path to Metatask: {tmp_input_dir}")
 
     # -- Rebuild The Metatask
