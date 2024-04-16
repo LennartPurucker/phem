@@ -150,7 +150,7 @@ def generate_data_for_ensembles_with_sklearn() -> SimulationData:
         pickle.dump(sim_data, f)
 
 
-def simulate_post_hoc_ensembling_from_preediction_data():
+def simulate_post_hoc_ensembling_from_prediction_data():
     # -- Obtain data from the simulation data
     with open("simulation_data.pkl", "rb") as f:
         simulation_data: SimulationData = pickle.load(f)
@@ -182,4 +182,4 @@ def simulate_post_hoc_ensembling_from_preediction_data():
 
 if __name__ == "__main__":
     generate_data_for_ensembles_with_sklearn()
-    simulate_post_hoc_ensembling_from_preediction_data()
+    simulate_post_hoc_ensembling_from_prediction_data()

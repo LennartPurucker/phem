@@ -4,6 +4,7 @@ import os
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
+from typing import Literal
 
 import numpy as np
 from ribs.optimizers import Optimizer
@@ -81,6 +82,12 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         Please be aware that multi-processing introduces a time overhead.
     show_analysis: bool, default=False
         Show fit analysis code.
+    base_models_metadata_type: {"custom", "auto-sklearn-assembled-format"}, default="auto-sklearn-assembled-format"
+        The type of metadata that is passed to the ensemble. This is important for the behavior space to work correctly.
+        Only used if the behavior space contains a behavior function that requires base model metadata. Otherwise, ignored.
+            - "custom": The metadata is passed as a custom dictionary that is passed in the exact same format to the behavior function.
+            - "auto-sklearn-assembled-format": The metadata is passed in the format that is used by the Auto-sklearn Assembler framework as in the research
+                paper. Required for the default `ConfigSpaceGowerSimilarity` behavior function.
     """
 
     allowed_emitter_methods = {"DiscreteWeightSpaceEmitter"}
@@ -102,6 +109,9 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         random_state: int | np.random.RandomState | None = None,
         show_analysis=False,
         n_jobs: int = -1,
+        base_models_metadata_type: Literal[
+            "custom", "auto-sklearn-assembled-format"
+        ] = "auto-sklearn-assembled-format",
     ) -> None:
         # The following just tells our wrapper/supper that we want to have prediction probabilities as input for fit
         super().__init__(base_models, "predict_proba")
@@ -136,41 +146,47 @@ class QDOEnsembleSelection(AbstractWeightedEnsemble):
         self._n_init_evals = 0
 
         # -- Pre-process metadata from base models
+        self.base_models_metadata_type = base_models_metadata_type
         self.config_key_to_range_ = None  # type: Optional[Dict[str, float]]
         self.qdo_base_models_metadata_ = None  # type: Optional[List[dict]]
+
         if self.behavior_space.requires_base_model_metadata:
-            self.qdo_base_models_metadata_ = []  # Only consists of the config and no other metadata
-            for bm_metadata in self.base_models_metadata:
-                if not (bm_metadata.get("auto-sklearn-model")):
-                    raise NotImplementedError(
-                        "We currently only support base model metadata created by the ",
-                        "Auto-sklearn Assembler.",
-                    )
-                self.qdo_base_models_metadata_.append(bm_metadata["config"])
+            if self.base_models_metadata_type == "custom":
+                self.qdo_base_models_metadata_ = self.base_models_metadata
+                self.config_key_to_range_ = "custom_metadata"
+            else:
+                self.qdo_base_models_metadata_ = []  # Only consists of the config and no other metadata
+                for bm_metadata in self.base_models_metadata:
+                    if not (bm_metadata.get("auto-sklearn-model")):
+                        raise NotImplementedError(
+                            "We currently only support base model metadata created by the ",
+                            "Auto-sklearn Assembler.",
+                        )
+                    self.qdo_base_models_metadata_.append(bm_metadata["config"])
 
-            # -- Compute ranges
-            all_numeric_keys = [
-                (k, v)
-                for bm in self.base_models_metadata
-                for k, v in bm["config"].items()
-                if not isinstance(v, str)
-            ]
-            # Get bounds
-            key_to_bounds = {
-                k: [float("+inf"), float("-inf")] for k in {k for k, v in all_numeric_keys}
-            }
-            for k, v in all_numeric_keys:
-                curr_min = key_to_bounds[k][0]
-                curr_max = key_to_bounds[k][1]
-                if v < curr_min:
-                    key_to_bounds[k][0] = v
-                if v > curr_max:
-                    key_to_bounds[k][1] = v
+                # -- Compute ranges
+                all_numeric_keys = [
+                    (k, v)
+                    for bm in self.base_models_metadata
+                    for k, v in bm["config"].items()
+                    if not isinstance(v, str)
+                ]
+                # Get bounds
+                key_to_bounds = {
+                    k: [float("+inf"), float("-inf")] for k in {k for k, v in all_numeric_keys}
+                }
+                for k, v in all_numeric_keys:
+                    curr_min = key_to_bounds[k][0]
+                    curr_max = key_to_bounds[k][1]
+                    if v < curr_min:
+                        key_to_bounds[k][0] = v
+                    if v > curr_max:
+                        key_to_bounds[k][1] = v
 
-            # Transform to ranges
-            self.config_key_to_range_ = {
-                k: abs(bds[1] - bds[0]) for k, bds in key_to_bounds.items()
-            }
+                # Transform to ranges
+                self.config_key_to_range_ = {
+                    k: abs(bds[1] - bds[0]) for k, bds in key_to_bounds.items()
+                }
 
         # -- Multi-processing
         if (n_jobs == 1) or (os.name == "nt"):
@@ -746,14 +762,21 @@ def evaluate_single_solution(
         pred_arguments["proba_preds"] = [y_pred_ensemble, Y_pred_base_models]
 
     if bm_meta_req:
-        pred_arguments["input_metadata"] = [
-            config_key_to_range_,
-            [
+        if config_key_to_range_ == "custom_metadata":
+            pred_arguments["input_metadata"] = [
                 md
                 for md, selected in zip(qdo_base_models_metadata_, rm_zero_mask, strict=False)
                 if selected
-            ],
-        ]
+            ]
+        else:
+            pred_arguments["input_metadata"] = [
+                config_key_to_range_,
+                [
+                    md
+                    for md, selected in zip(qdo_base_models_metadata_, rm_zero_mask, strict=False)
+                    if selected
+                ],
+            ]
 
     b_i = behavior_space(weight_vector, y_true, **pred_arguments) if pred_arguments else []
 
