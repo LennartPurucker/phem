@@ -45,5 +45,15 @@ def msc(metric_name, is_binary, labels):
                 optimum_value=1,
                 requires_confidences=True,
             )
+    elif metric_name == "log_loss":
+        return make_metric(
+            partial(log_loss, labels=labels),
+            metric_name="log_loss",
+            maximize=False,
+            classification=True,
+            always_transform_conf_to_pred=False,
+            optimum_value=0,
+            requires_confidences=True
+        )
     else:
         raise ValueError(f"Unknown metric name: {metric_name}")
